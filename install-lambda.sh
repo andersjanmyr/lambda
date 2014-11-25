@@ -31,14 +31,13 @@ upload_package() {
      --region eu-west-1 \
      --function-name $main  \
      --function-zip $zip \
-     --role arn:aws:iam::356671443308:role/executionrole  \
+     --role arn:aws:iam::638281126589:role/lambda_exec_role \
      --mode event \
-     --handler $main \
+     --handler $main.handler \
      --runtime nodejs \
      --debug \
-     --profile adminuser \
      --timeout 10 \
-     --memory-size 1024
+     --memory-size 128
 }
 
 
