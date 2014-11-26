@@ -1,14 +1,15 @@
 'use strict';
 var aws = require('aws-sdk');
 var s3 = new aws.S3({apiVersion: '2006-03-01'});
-var tmp = require('tmp');
+var exec = require('child_process').exec;
 var fs = require('fs');
 var path = require('path');
-var glob = require('glob');
-var exec = require('child_process').exec;
 var util = require('util');
-var checksum = require('checksum');
+
 var async = require('async');
+var checksum = require('checksum');
+var glob = require('glob');
+var tmp = require('tmp');
 
 
 function extractTarBall(dirname, tarfile, callback) {
