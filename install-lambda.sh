@@ -8,7 +8,6 @@ set -o errexit
 
 function usage() {
   echo "Usage: $program <function.js>"
-  echo "  --dry - don't to anything."
 }
 
 if [ $# -lt 1 ]
@@ -18,7 +17,7 @@ then
   exit 1
 fi
 
-main=${1}
+main=${1%.js}
 file="./${main}.js"
 zip="./${main}.zip"
 
