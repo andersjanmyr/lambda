@@ -1,0 +1,31 @@
+{
+  "name": "assetify",
+  "version": "1.0.0",
+  "description": "Lambda function to checksum resources from a tar-ball.",
+  "main": "assetify.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andersjanmyr/lambda.git"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "checksum",
+    "md5"
+  ],
+  "author": "Anders Janmyr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andersjanmyr/lambda/issues"
+  },
+  "homepage": "https://github.com/andersjanmyr/lambda",
+  "dependencies": {
+    "async": "^0.9.0",
+    "checksum": "^0.1.1",
+    "glob": "^4.2.1",
+    "tmp": "0.0.24"
+  }
+}
