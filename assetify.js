@@ -12,7 +12,7 @@ var glob = require('glob');
 var tmp = require('tmp');
 
 
-function extractTarBall(dirname, tarfile, callback) {
+function extractTarBall(tarfile, callback) {
     tmp.dir(function(err, dir) {
         if (err) return callback(err);
         var cmd = 'tar -xzf ' + tarfile + ' -C ' + dir;
@@ -23,7 +23,7 @@ function extractTarBall(dirname, tarfile, callback) {
                 var fs = files.map(function(file) {
                     return {
                         path: file,
-                        originalFilename: file.replace(dir, dirname)
+                        originalFile: file.replace(dir, '')
                     };
                 });
                 return callback(null, fs);
@@ -32,36 +32,66 @@ function extractTarBall(dirname, tarfile, callback) {
     });
 }
 
-function saveFiles(files, callback) {
-    async.map(files, md5file, function(err, urls) {
-        if (err) callback(err);
-        return callback(null, urls);
-    });
+function checksumFiles(files, callback) {
+    async.map(files, checksumFile, callback);
 }
 
-function md5file(file, callback) {
+function checksumFile(file, callback) {
     checksum.file(file.path, { algorithm: 'md5'}, function(err, sum) {
         if (err) return callback(err);
-        var filename = file.originalFilename;
+        var filename = file.originalFile;
         var ext = path.extname(filename);
         var base = filename.replace(ext, '');
-        var newFile = base + '-' + sum + ext;
-        upload(file.path, newFile, callback);
-    });
-}
+        var checksumFile = base + '-' + sum + ext;
 
-function upload(path, filename, callback) {
-    fs.readFile(path, 'binary', function(err, data) {
-        if (err) return callback(err);
-        var options = {Bucket: 'jn-test', Key: filename, Body: data};
-        s3.putObject(options, function(err, data) {
-            if (err) return callback(err);
-            console.log('Object added', options.Key);
-            var url = 'https://s3-eu-west-1.amazonaws.com/jn-test/' + filename;
-            callback(null, url);
+        callback(null, {
+            path: file.path,
+            originalFile: file.originalFile,
+            checksumFile: checksumFile
         });
     });
 }
+
+function uploadFiles(prefix, files, callback) {
+    async.map(files, uploadFile.bind(null, prefix), callback);
+}
+
+function uploadFile(prefix, file, callback) {
+    var s3Url = 'https://s3-eu-west-1.amazonaws.com/';
+    var bucket = 'jn-text/';
+    fs.readFile(file.path, 'binary', function(err, data) {
+        if (err) return callback(err);
+        var s3options = {
+            Bucket: bucket,
+            Key: prefix + file.checksumFile,
+            Body: data
+        };
+        s3.putObject(s3options, function(err, data) {
+            if (err) return callback(err);
+            console.log('Object added', s3options.Key);
+            callback(null, {
+                originalFile: file.originalFile,
+                url: s3Url + bucket + file.checksumFile
+            });
+        });
+    });
+}
+
+function downloadFile(bucket, key, callback) {
+    tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
+        if (err) return callback(err);
+        var awsRequest = s3.getObject({Bucket:bucket, Key:key});
+        awsRequest.on('success', function() {
+            return callback(null, tmpfile);
+        });
+        awsRequest.on('error', function(response) {
+            return callback(response.error);
+        });
+        var stream = fs.createWriteStream(tmpfile);
+        awsRequest.createReadStream().pipe(stream);
+    });
+}
+
 
 
 exports.handler = function(event, context) {
@@ -73,23 +103,22 @@ exports.handler = function(event, context) {
     var tgzRegex = new RegExp('\\.tgz');
     if (!key.match(tgzRegex)) return context.done('no match');
     var dirname = path.basename(key, '.tgz');
-    tmp.file({postfix: '.tgz'}, function tmpFileCreated(err, tmpfile) {
+    downloadFile(bucket, key, function(err, tarfile) {
         if (err) return context.done(err);
-        var awsRequest = s3.getObject({Bucket:bucket, Key:key});
-        awsRequest.on('success', function(response) {
-            extractTarBall(dirname, tmpfile, function(err, files) {
+
+        extractTarBall(tarfile, function(err, files) {
+            if (err) return context.done(err);
+
+            checksumFiles(files, function(err, files) {
                 if (err) return context.done(err);
-                saveFiles(files, function(err, urls) {
+
+                uploadFiles(dirname, files, function(err, files) {
                     if (err) return context.done(err);
-                    context.done(null, util.inspect(urls));
+                    context.done(null, util.inspect(files));
                 });
+
             });
         });
-        awsRequest.on('error', function(response) {
-            context.done(response.error);
-        });
-        var stream = fs.createWriteStream(tmpfile);
-        awsRequest.createReadStream().pipe(stream);
     });
 };
 
