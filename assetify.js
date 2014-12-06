@@ -12,6 +12,38 @@ var glob = require('glob');
 var tmp = require('tmp');
 
 
+function assetify(bucket, key, callback) {
+    var tgzRegex = new RegExp('\\.tgz');
+    if (!key.match(tgzRegex)) return callback('no match');
+    var dirname = path.basename(key, '.tgz');
+
+    async.waterfall([
+        downloadFile.bind(null, bucket, key),
+        extractTarBall,
+        checksumFiles,
+        uploadFiles.bind(null, dirname)
+    ], function(err, result) {
+        if (err) return callback(err);
+        callback(null, result);
+    });
+}
+
+function downloadFile(bucket, key, callback) {
+    console.log('downloadFile', bucket, key)
+    tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
+        if (err) return callback(err);
+        var awsRequest = s3.getObject({Bucket:bucket, Key:key});
+        awsRequest.on('success', function() {
+            return callback(null, tmpfile);
+        });
+        awsRequest.on('error', function(response) {
+            return callback(response.error);
+        });
+        var stream = fs.createWriteStream(tmpfile);
+        awsRequest.createReadStream().pipe(stream);
+    });
+}
+
 function extractTarBall(tarfile, callback) {
     tmp.dir(function(err, dir) {
         if (err) return callback(err);
@@ -77,23 +109,6 @@ function uploadFile(prefix, file, callback) {
     });
 }
 
-function downloadFile(bucket, key, callback) {
-    console.log('downloadFile', bucket, key)
-    tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
-        if (err) return callback(err);
-        var awsRequest = s3.getObject({Bucket:bucket, Key:key});
-        awsRequest.on('success', function() {
-            return callback(null, tmpfile);
-        });
-        awsRequest.on('error', function(response) {
-            return callback(response.error);
-        });
-        var stream = fs.createWriteStream(tmpfile);
-        awsRequest.createReadStream().pipe(stream);
-    });
-}
-
-
 
 exports.handler = function(event, context) {
     console.log('Received event:');
@@ -101,18 +116,8 @@ exports.handler = function(event, context) {
 
     var bucket = event.Records[0].s3.bucket.name;
     var key = event.Records[0].s3.object.key;
-    var tgzRegex = new RegExp('\\.tgz');
-    if (!key.match(tgzRegex)) return context.done('no match');
-    var dirname = path.basename(key, '.tgz');
-
-    async.waterfall([
-        downloadFile.bind(null, bucket, key),
-        extractTarBall,
-        checksumFiles,
-        uploadFiles.bind(null, dirname)
-    ], function(err, result) {
-        if (err) return context.done(err);
-        context.done(null, util.inspect(result));
+    assetify(bucket, key, function(err, result) {
+        context.done(err, util.inspect(result));
     });
 
 };
