@@ -1,6 +1,6 @@
 'use strict';
 var aws = require('aws-sdk');
-var s3 = new aws.S3({apiVersion: '2006-03-01'});
+var s3 = new aws.S3({apiVersion: '2006-03-01', region: 'eu-west-1'});
 var exec = require('child_process').exec;
 var fs = require('fs');
 var path = require('path');
