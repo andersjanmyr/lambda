@@ -104,22 +104,16 @@ exports.handler = function(event, context) {
     var tgzRegex = new RegExp('\\.tgz');
     if (!key.match(tgzRegex)) return context.done('no match');
     var dirname = path.basename(key, '.tgz');
-    downloadFile(bucket, key, function(err, tarfile) {
+
+    async.waterfall([
+        downloadFile.bind(null, bucket, key),
+        extractTarBall,
+        checksumFiles,
+        uploadFiles.bind(null, dirname)
+    ], function(err, result) {
         if (err) return context.done(err);
-
-        extractTarBall(tarfile, function(err, files) {
-            if (err) return context.done(err);
-
-            checksumFiles(files, function(err, files) {
-                if (err) return context.done(err);
-
-                uploadFiles(dirname, files, function(err, files) {
-                    if (err) return context.done(err);
-                    context.done(null, util.inspect(files));
-                });
-
-            });
-        });
+        context.done(null, util.inspect(result));
     });
+
 };
 
