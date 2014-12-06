@@ -58,7 +58,7 @@ function uploadFiles(prefix, files, callback) {
 
 function uploadFile(prefix, file, callback) {
     var s3Url = 'https://s3-eu-west-1.amazonaws.com/';
-    var bucket = 'jn-text/';
+    var bucket = 'anders-dest/';
     fs.readFile(file.path, 'binary', function(err, data) {
         if (err) return callback(err);
         var s3options = {
