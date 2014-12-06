@@ -78,6 +78,7 @@ function uploadFile(prefix, file, callback) {
 }
 
 function downloadFile(bucket, key, callback) {
+    console.log('downloadFile', bucket, key)
     tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
         if (err) return callback(err);
         var awsRequest = s3.getObject({Bucket:bucket, Key:key});
