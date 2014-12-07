@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# upload-lambda.sh
+# Zip and upload lambda function
+#
 
 program=`basename $0`
 
@@ -18,20 +22,20 @@ fi
 main=${1%.js}
 file="./${main}.js"
 zip="./${main}.zip"
+
 role='arn:aws:iam::638281126589:role/lambda_exec_role'
+region='eu-west-1'
 
 zip_package() {
   zip -r $zip $file lib node_modules
 }
 
-
-
 upload_package() {
   aws lambda upload-function \
-     --region eu-west-1 \
+     --region $region \
+     --role $role\
      --function-name $main  \
      --function-zip $zip \
-     --role $role\
      --mode event \
      --handler $main.handler \
      --runtime nodejs \
@@ -40,8 +44,6 @@ upload_package() {
      --memory-size 128
 }
 
-
 # main
 zip_package
 upload_package
-
