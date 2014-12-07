@@ -85,12 +85,13 @@ function checksumFile(file, callback) {
 }
 
 function uploadFiles(prefix, files, callback) {
+    console.log('uploadFiles', prefix, files)
     async.map(files, uploadFile.bind(null, prefix), callback);
 }
 
 function uploadFile(prefix, file, callback) {
     var s3Url = 'https://s3-eu-west-1.amazonaws.com/';
-    var bucket = 'anders-dest/';
+    var bucket = 'anders-dest';
     fs.readFile(file.path, 'binary', function(err, data) {
         if (err) return callback(err);
         var s3options = {
