@@ -12,27 +12,34 @@ var glob = require('glob');
 var tmp = require('tmp');
 
 
-function assetify(bucket, key, callback) {
+var config = {
+    bucket: 'anders-dest',
+    url: 'https://s3-eu-west-1.amazonaws.com/'
+};
+
+
+function assetify(sourceBucket, key, callback) {
     var tgzRegex = new RegExp('\\.tgz');
     if (!key.match(tgzRegex)) return callback('no match');
-    var dirname = path.basename(key, '.tgz');
+    var prefix = path.basename(key, '.tgz');
 
     async.waterfall([
-        downloadFile.bind(null, bucket, key),
+        downloadFile.bind(null, sourceBucket, key),
         extractTarBall,
         checksumFiles,
-        uploadFiles.bind(null, dirname)
+        uploadFiles.bind(null, prefix),
+        uploadIndex.bind(null, prefix)
     ], function(err, result) {
         if (err) return callback(err);
         callback(null, result);
     });
 }
 
-function downloadFile(bucket, key, callback) {
-    console.log('downloadFile', bucket, key)
+function downloadFile(sourceBucket, key, callback) {
+    console.log('downloadFile', sourceBucket, key)
     tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
         if (err) return callback(err);
-        var awsRequest = s3.getObject({Bucket:bucket, Key:key});
+        var awsRequest = s3.getObject({Bucket: sourceBucket, Key:key});
         awsRequest.on('success', function() {
             return callback(null, tmpfile);
         });
@@ -90,12 +97,10 @@ function uploadFiles(prefix, files, callback) {
 }
 
 function uploadFile(prefix, file, callback) {
-    var s3Url = 'https://s3-eu-west-1.amazonaws.com/';
-    var bucket = 'anders-dest';
     fs.readFile(file.path, 'binary', function(err, data) {
         if (err) return callback(err);
         var s3options = {
-            Bucket: bucket,
+            Bucket: config.bucket,
             Key: prefix + file.checksumFile,
             Body: data
         };
@@ -104,10 +109,29 @@ function uploadFile(prefix, file, callback) {
             console.log('Object added', s3options.Key);
             callback(null, {
                 originalFile: file.originalFile,
-                url: s3Url + bucket + file.checksumFile
+                url: config.url + prefix + file.checksumFile
             });
         });
     });
+}
+
+
+function uploadIndex(prefix, files, callback) {
+    var s3options = {
+        Bucket: config.bucket,
+        Key: prefix + '/index.json',
+        Body: JSON.stringify(files)
+    };
+
+    s3.putObject(s3options, function(err, data) {
+        if (err) return callback(err);
+        console.log('Object added', s3options.Key);
+        callback(null, {
+            files: files,
+            url: config.url + prefix + '/index.json'
+        });
+    });
+
 }
 
 
