@@ -20,17 +20,19 @@ fi
 main=${1%.js}
 file="./${main}.js"
 zip="./${main}.zip"
-
+role='arn:aws:iam::638281126589:role/lambda_exec_role'
 zip_package() {
   zip -r $zip $file lib node_modules
 }
+
+
 
 upload_package() {
   aws lambda upload-function \
      --region eu-west-1 \
      --function-name $main  \
      --function-zip $zip \
-     --role arn:aws:iam::638281126589:role/lambda_exec_role \
+     --role $role\
      --mode event \
      --handler $main.handler \
      --runtime nodejs \
