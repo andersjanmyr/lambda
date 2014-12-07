@@ -1,7 +1,5 @@
 #!/bin/bash
 
-bin=${BASH_SOURCE[0]%/*.sh}
-
 program=`basename $0`
 
 set -o errexit
@@ -21,6 +19,7 @@ main=${1%.js}
 file="./${main}.js"
 zip="./${main}.zip"
 role='arn:aws:iam::638281126589:role/lambda_exec_role'
+
 zip_package() {
   zip -r $zip $file lib node_modules
 }
