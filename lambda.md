@@ -47,6 +47,29 @@ upload zip-archives and this is both error prone and tedious. Here is a simple
 script to zip relevant files and upload them to Lambda. Make sure to update the
 region and the role to your own specific properties.
 
+
+## A Larger Example
+
+## Sequence Diagram
+
+```javascript ./assetify.js snippet-download-file
+```
+
+```javascript ./assetify.js snippet-extract-tarball
+```
+
+```javascript ./assetify.js snippet-checksum-files
+```
+
+```javascript ./assetify.js snippet-upload-files
+```
+
+```javascript ./assetify.js snippet-upload-index
+```
+
+```javascript ./assetify.js snippet-assetify
+```
+
 ```sh ./upload-lambda.sh
 ```
 

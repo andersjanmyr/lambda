@@ -18,6 +18,7 @@ var config = {
 };
 
 
+// snippet-download-file
 function assetify(sourceBucket, key, callback) {
     var tgzRegex = new RegExp('\\.tgz');
     if (!key.match(tgzRegex)) return callback('no match');
@@ -35,6 +36,11 @@ function assetify(sourceBucket, key, callback) {
     });
 }
 
+module.exports = assetify;
+// snippet-download-file
+
+
+// snippet-download-file
 function downloadFile(sourceBucket, key, callback) {
     console.log('downloadFile', sourceBucket, key)
     tmp.file({postfix: '.tgz'}, function tmpCreated(err, tmpfile) {
@@ -50,7 +56,9 @@ function downloadFile(sourceBucket, key, callback) {
         awsRequest.createReadStream().pipe(stream);
     });
 }
+// snippet-download-file
 
+// snippet-extract-tarball
 function extractTarBall(tarfile, callback) {
     tmp.dir(function(err, dir) {
         if (err) return callback(err);
@@ -70,7 +78,9 @@ function extractTarBall(tarfile, callback) {
         });
     });
 }
+// snippet-extract-tarball
 
+// snippet-checksum-files
 function checksumFiles(files, callback) {
     async.map(files, checksumFile, callback);
 }
@@ -90,7 +100,9 @@ function checksumFile(file, callback) {
         });
     });
 }
+// snippet-checksum-files
 
+// snippet-upload-files
 function uploadFiles(prefix, files, callback) {
     console.log('uploadFiles', prefix, files)
     async.map(files, uploadFile.bind(null, prefix), callback);
@@ -114,8 +126,10 @@ function uploadFile(prefix, file, callback) {
         });
     });
 }
+// snippet-upload-files
 
 
+// snippet-upload-index
 function uploadIndex(prefix, files, callback) {
     var s3options = {
         Bucket: config.bucket,
@@ -133,8 +147,11 @@ function uploadIndex(prefix, files, callback) {
     });
 
 }
+// snippet-upload-index
 
+module.exports = assetify;
 
+// snippet-handler
 exports.handler = function(event, context) {
     console.log('Received event:');
     console.log(JSON.stringify(event, null, '  '));
@@ -144,6 +161,6 @@ exports.handler = function(event, context) {
     assetify(bucket, key, function(err, result) {
         context.done(err, util.inspect(result));
     });
-
 };
+// snippet-handler
 
