@@ -10,7 +10,7 @@ var async = require('async');
 var checksum = require('checksum');
 var glob = require('glob');
 var tmp = require('tmp');
-
+var mime = require('mime');
 
 var config = {
     bucket: 'anders-dest',
@@ -18,7 +18,7 @@ var config = {
 };
 
 
-// snippet-download-file
+// snippet-assetify
 function assetify(sourceBucket, key, callback) {
     var tgzRegex = new RegExp('\\.tgz');
     if (!key.match(tgzRegex)) return callback('no match');
@@ -37,7 +37,7 @@ function assetify(sourceBucket, key, callback) {
 }
 
 module.exports = assetify;
-// snippet-download-file
+// snippet-assetify
 
 
 // snippet-download-file
@@ -109,20 +109,19 @@ function uploadFiles(prefix, files, callback) {
 }
 
 function uploadFile(prefix, file, callback) {
-    fs.readFile(file.path, 'binary', function(err, data) {
+    var stream = fs.createReadStream(file.path);
+    var s3options = {
+        Bucket: config.bucket,
+        Key: prefix + file.checksumFile,
+        Body: stream,
+        ContentType: mime.lookup(file.path)
+    };
+    s3.putObject(s3options, function(err, data) {
         if (err) return callback(err);
-        var s3options = {
-            Bucket: config.bucket,
-            Key: prefix + file.checksumFile,
-            Body: data
-        };
-        s3.putObject(s3options, function(err, data) {
-            if (err) return callback(err);
-            console.log('Object added', s3options.Key);
-            callback(null, {
-                originalFile: file.originalFile,
-                url: config.url + prefix + file.checksumFile
-            });
+        console.log('Object added', s3options);
+        callback(null, {
+            originalFile: file.originalFile,
+            url: config.url + config.bucket + '/' + prefix + file.checksumFile
         });
     });
 }
@@ -134,7 +133,8 @@ function uploadIndex(prefix, files, callback) {
     var s3options = {
         Bucket: config.bucket,
         Key: prefix + '/index.json',
-        Body: JSON.stringify(files)
+        Body: JSON.stringify(files),
+        ContentType: 'application/json'
     };
 
     s3.putObject(s3options, function(err, data) {
@@ -142,17 +142,15 @@ function uploadIndex(prefix, files, callback) {
         console.log('Object added', s3options.Key);
         callback(null, {
             files: files,
-            url: config.url + prefix + '/index.json'
+            url: config.url + config.bucket + '/' + prefix + '/index.json'
         });
     });
 
 }
 // snippet-upload-index
 
-module.exports = assetify;
-
 // snippet-handler
-exports.handler = function(event, context) {
+assetify.handler = function(event, context) {
     console.log('Received event:');
     console.log(JSON.stringify(event, null, '  '));
 
