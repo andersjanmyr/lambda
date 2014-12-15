@@ -156,6 +156,7 @@ to create a name with a checksum in it.
 When the new filenames have been created the files can now be uploaded to S3
 via `s3.putObject`. Unfortunately, `putObject` does not support `pipe`, but I
 can use a ReadStream as the value of the body object and this is good enough.
+It uses the `mime` module to calculate the content-type from the filename.
 After the file is uploaded an object with a mapping between the original name
 and the URL is returned.
 
