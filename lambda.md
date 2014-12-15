@@ -35,7 +35,7 @@ Logs
 START RequestId: 3e21d80e-7e31-11e4-912c-2f870de05098
 2014-12-07T16:51:47.163Z	3e21d80e-7e31-11e4-912c-2f870de05098	Hello Tapir
 END RequestId: 3e21d80e-7e31-11e4-912c-2f870de05098
-REPORT RequestId: 3e21d80e-7e31-11e4-912c-2f870de05098	Duration: 3.89 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 9 MB	
+REPORT RequestId: 3e21d80e-7e31-11e4-912c-2f870de05098	Duration: 3.89 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 9 MB
 Message
 -------
 Success
@@ -55,7 +55,7 @@ region and the role to your own specific properties.
 Now that I know the Lambda works it is time to try out something more
 elaborate. I have read that it is not only possible to get access to npm
 modules but I also have access to the operating system when writing my
-service. 
+service.
 
 My bigger example consists of something I often have use for, a way to serve
 media files so that I don't have to check them into git. The way I want to do
@@ -170,7 +170,14 @@ JSON-file. This is done in a similar way as the upload of the images.
 
 ```javascript ./assetify.js snippet-upload-index
 ```
+The final return value of assetify is:
 
+```javascript
+{ files:
+   [ { originalFile: '/cdn-resources.js',
+       url: 'https://s3-eu-west-1.amazonaws.com/anders-dest/lambda/cdn-resources-27b11be8fa67896cd7d43ade56281e1e.js' } ],
+  url: 'https://s3-eu-west-1.amazonaws.com/anders-dest/lambda/index.json' }
+```
 
 ## Summary
 
