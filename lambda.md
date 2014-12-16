@@ -10,12 +10,11 @@ select the `Lambda` service. You have to fill out a form to request access,
 which may take a while to come through. Once you have access you can edit the
 functions in a web form.
 
-
 A lambda service is a Node module which exports an object with one function,
 the handler. In the AWS examples this is usually called *handler* and I'm going
 to follow their example.
 
-Here is a simple function that can be edited invoked in the online *Lambda
+Here is a simple function that can be edited and invoked in the online *Lambda
 Edit/Test* tool.
 
 ```javascript
@@ -88,7 +87,7 @@ down format
           "name": "anders-source",
         },
         "object": {
-          "key": "lambda.tgz",
+          "key": "tapirs.tgz",
           "size": 1024,
           "eTag": "d41d8cd98f00b204e9800998ecf8427e"
         }
@@ -170,13 +169,21 @@ JSON-file. This is done in a similar way as the upload of the images.
 
 ```javascript ./assetify.js snippet-upload-index
 ```
-The final return value of assetify is:
+The final index.json file loooks something like this.
 
 ```javascript
-{ files:
-   [ { originalFile: '/cdn-resources.js',
-       url: 'https://s3-eu-west-1.amazonaws.com/anders-dest/lambda/cdn-resources-27b11be8fa67896cd7d43ade56281e1e.js' } ],
-  url: 'https://s3-eu-west-1.amazonaws.com/anders-dest/lambda/index.json' }
+[{
+  originalFile: "/Tapir_standing_profile.jpg",
+  url: "https://s3-eu-west-1.amazonaws.com/anders-dest/tapirs/Tapir_standing_profile-624bd0ac55d5140a78a2ea9d1409e2f6.jpg"
+},
+{
+  originalFile: "/tapir-sticker.png",
+  url: "https://s3-eu-west-1.amazonaws.com/anders-dest/tapirs/tapir-sticker-8522f4228bbc995d73ee1ead9d5e8e4f.png"
+},
+{
+  originalFile: "/tapir.jpg",
+  url: "https://s3-eu-west-1.amazonaws.com/anders-dest/tapirs/tapir-eb09705a33f6c6896def4e452fa77272.jpg"
+}]
 ```
 
 ## Summary
@@ -185,5 +192,5 @@ Lambda is very simple to work with and it allows me to create small services
 that react to events without the need to setup any servers at all.
 
 Apart from the integration with S3, it also integrates with Kinesis and with
-DynamoDB allowing for very cook application to built.
+DynamoDB allowing for very cool application to built.
 
